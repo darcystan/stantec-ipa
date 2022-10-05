@@ -48,7 +48,7 @@ dependencies: {}
 repository: https://github.com/darcystan/stantec-ipa
 
 # The URL to any online docs
-documentation: https://github.com/darcystan/stantec-ipa/blob/main/README.md
+documentation: https://github.com/darcystan/stantec-ipa/blob/master/README.md
 
 # The URL to the homepage of the collection/project
 homepage: https://github.com/darcystan/stantec-ipa
