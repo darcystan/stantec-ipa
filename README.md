@@ -1,4 +1,4 @@
-### Stantec General Collection
+### Stantec IPA Inventory Collection
 
 - ipa_inventory: IPA/IdM API Inventory plugin
 

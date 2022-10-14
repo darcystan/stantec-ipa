@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) Ansible Project
+# Copyright (c) Darcy Morrissette
+# Credit to the Ansible Project for the original inventory script
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
@@ -94,7 +95,6 @@ from ansible.module_utils.urls import open_url
 from ansible.module_utils.six.moves import http_cookiejar as cookiejar
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 
-#class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     NAME = 'darcystan.ipa_inv.ipa_inventory'
@@ -142,7 +142,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if login_req.code == 200:
                 cookie_list = []
                 for ck in cookies:
-                    cookie_list.append(str(ck.name) + "="+ str(ck.value))
+                    cookie_list.append(str(ck.name) + "=" + str(ck.value))
             else:
                 AnsibleModule.fail_json(changed=False, msg="Login Failed!", reason=login_req.read(),
                 response="HTTP status_code: " + str(login_req.code))
@@ -161,33 +161,25 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         try:
             ipaserver
         except NameError:
-            raise AnsibleError(
-            'ERROR: The ipa_server option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The ipa_server option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         ipauser = self.get_option("ipa_user")
         try:
             ipauser
         except NameError:
-            raise AnsibleError(
-            'ERROR: The ipa_user option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The ipa_user option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         ipapassword = self.get_option("ipa_pass")
         try:
             ipapassword
         except NameError:
-            raise AnsibleError(
-            'ERROR: The ipa_pass option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The ipa_pass option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         hostgroup = self.get_option("ipa_hostgroup")
         try:
             hostgroup
         except NameError:
-            raise AnsibleError(
-            'ERROR: The ipa_hostgroup option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The ipa_hostgroup option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         ipaversion = self.get_option("ipa_version")
         if ipaversion is None:
@@ -195,17 +187,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         try:
             ipaversion
         except NameError:
-            raise AnsibleError(
-            'ERROR: The ipa_version option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The ipa_version option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         validate_certs = self.get_option("validate_certs")
         try:
             validate_certs
         except NameError:
-            raise AnsibleError(
-            'ERROR: The validate_certs option in the inventory config is not set (Ex: idm_inv.yml). '
-            )
+            raise AnsibleError('ERROR: The validate_certs option in the inventory config is not set (Ex: idm_inv.yml). ')
 
         base_url = "https://{}/ipa".format(ipaserver)
         cookies = self.get_cookie(base_url, ipauser, ipapassword, validate_certs)
@@ -220,16 +208,16 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
-        data = json.dumps({ 
+        data = json.dumps({
             "method": "hostgroup_find",
             "params": [
                 [""],
                 {
                     "all": "true",
-                    "version":ipaversion
+                    "version": ipaversion
                 }
             ],
-            "id":0
+            "id": 0
         })
         try:
             request = open_url(url_login, method='POST', headers=headers, data=data, cookies=cookies, validate_certs=validate_certs)
@@ -237,7 +225,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         except Exception as e:
             AnsibleModule.fail_json(changed=False, msg="API Call failed! Exception during api call", reason=str(e))
         result = raw_result['result']['result']
-        #print(json.dumps(result, indent=1, sort_keys=True))
 
         # Get a list of all hosts to be excluded
         for hostgroup in result:
@@ -251,14 +238,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if 'member_host' in hostgroup:
                 members = [host for host in hostgroup['member_host']]
             if 'memberindirect_host' in hostgroup:
-                members += (host for host in  hostgroup['memberindirect_host'])
+                members += (host for host in hostgroup['memberindirect_host'])
 
             self.inventory.add_group(hostgroup['cn'][0])
             members = set(members) - set(ignore_members)
             for member in members:
                 self.inventory.add_host(host=member, group=hostgroup['cn'][0])
-
-        #self.inventory['_meta'] = {'hostvars': hostvars}
 
     def parse(self, inventory, loader, path, cache=True):
         super(InventoryModule, self).parse(inventory, loader, path)
